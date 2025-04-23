@@ -1,0 +1,53 @@
+[gd_scene load_steps=6 format=3 uid="uid://do7mx57l1v3qh"]
+
+[ext_resource type="Script" uid="uid://de53kcvow37d2" path="res://2d_character.gd" id="1_bpha1"]
+[ext_resource type="Texture2D" uid="uid://bicldfheqm5n8" path="res://test_knigth_2.png" id="2_bpha1"]
+
+[sub_resource type="BoxShape3D" id="BoxShape3D_trfh8"]
+size = Vector3(0.58, 1.506, 0.1)
+
+[sub_resource type="StandardMaterial3D" id="StandardMaterial3D_bpha1"]
+transparency = 1
+albedo_texture = ExtResource("2_bpha1")
+
+[sub_resource type="QuadMesh" id="QuadMesh_6opno"]
+size = Vector2(0.8, 1.6)
+
+[node name="CharacterBody3D" type="CharacterBody3D"]
+script = ExtResource("1_bpha1")
+
+[node name="CollisionShape3D" type="CollisionShape3D" parent="."]
+transform = Transform3D(1, 0, 0, 0, 1, 0, 0, 0, 1, 0.00334483, -0.0455933, 0.000103116)
+shape = SubResource("BoxShape3D_trfh8")
+debug_color = Color(0.368196, 0.536913, 0.806355, 0.42)
+
+[node name="MeshInstance3D" type="MeshInstance3D" parent="."]
+transform = Transform3D(1, 0, 0, 0, 1, 0, 0, 0, 1, 0.00473189, 0, 0.000310183)
+material_override = SubResource("StandardMaterial3D_bpha1")
+gi_mode = 2
+mesh = SubResource("QuadMesh_6opno")
+
+[node name="StateLabel" type="Label3D" parent="."]
+transform = Transform3D(1, 0, 0, 0, 1, 0, 0, 0, 1, -0.00814056, 0.929539, 0)
+
+[node name="StaminaStateLabel" type="Label3D" parent="."]
+transform = Transform3D(1, 0, 0, 0, 1, 0, 0, 0, 1, -0.0162811, 1.52277, 0)
+
+[node name="SpeedLabel" type="Label3D" parent="."]
+transform = Transform3D(1, 0, 0, 0, 1, 0, 0, 0, 1, -1.21044, 1.10054, 0)
+
+[node name="CameraPivot" type="Node3D" parent="."]
+transform = Transform3D(1, 0, 0, 0, 1, 0, 0, 0, 1, -0.0281163, -0.8443, 0)
+
+[node name="Camera3D" type="Camera3D" parent="CameraPivot"]
+transform = Transform3D(1, 0, 0, 0, 0.872325, 0.488926, 0, -0.488926, 0.872325, 0, 4.19169, 4.42407)
+fov = 80.0
+
+[node name="FlashLight" type="SpotLight3D" parent="."]
+transform = Transform3D(1, 0, 0, 0, 1, 0, 0, 0, 1, 0, 0.224649, 0)
+light_color = Color(0.75318, 0.627212, 0.391829, 1)
+light_energy = 10.0
+shadow_enabled = true
+spot_range = 10.2
+spot_attenuation = 1.5
+spot_angle = 35.0
