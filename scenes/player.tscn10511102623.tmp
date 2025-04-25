@@ -1,7 +1,7 @@
 [gd_scene load_steps=6 format=3 uid="uid://do7mx57l1v3qh"]
 
-[ext_resource type="Script" uid="uid://de53kcvow37d2" path="res://2d_character.gd" id="1_bpha1"]
-[ext_resource type="Texture2D" uid="uid://bicldfheqm5n8" path="res://test_knigth_2.png" id="2_bpha1"]
+[ext_resource type="Script" uid="uid://de53kcvow37d2" path="res://scripts/_player.gd" id="1_bpha1"]
+[ext_resource type="Texture2D" uid="uid://bicldfheqm5n8" path="res://images/test_knigth_2.png" id="2_bpha1"]
 
 [sub_resource type="BoxShape3D" id="BoxShape3D_trfh8"]
 size = Vector3(0.58, 1.506, 0.1)
@@ -13,7 +13,7 @@ albedo_texture = ExtResource("2_bpha1")
 [sub_resource type="QuadMesh" id="QuadMesh_6opno"]
 size = Vector2(0.8, 1.6)
 
-[node name="CharacterBody3D" type="CharacterBody3D"]
+[node name="Player" type="CharacterBody3D"]
 script = ExtResource("1_bpha1")
 
 [node name="CollisionShape3D" type="CollisionShape3D" parent="."]
@@ -29,6 +29,12 @@ mesh = SubResource("QuadMesh_6opno")
 
 [node name="StateLabel" type="Label3D" parent="."]
 transform = Transform3D(1, 0, 0, 0, 1, 0, 0, 0, 1, -0.00814056, 0.929539, 0)
+
+[node name="StaminaStateLabel" type="Label3D" parent="."]
+transform = Transform3D(1, 0, 0, 0, 1, 0, 0, 0, 1, -0.0162811, 1.52277, 0)
+
+[node name="DEBUG_LABEL" type="Label3D" parent="."]
+transform = Transform3D(1, 0, 0, 0, 1, 0, 0, 0, 1, -1.21044, 1.10054, 0)
 
 [node name="CameraPivot" type="Node3D" parent="."]
 transform = Transform3D(1, 0, 0, 0, 1, 0, 0, 0, 1, -0.0281163, -0.8443, 0)
