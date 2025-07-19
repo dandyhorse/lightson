@@ -46,6 +46,10 @@ spot_range = 10.2
 spot_attenuation = 1.5
 spot_angle = 35.0
 
+[node name="ReloadTImer" type="Timer" parent="."]
+wait_time = 2.0
+one_shot = true
+
 [node name="CanvasLayer" type="CanvasLayer" parent="."]
 
 [node name="Control" type="Control" parent="CanvasLayer"]
@@ -94,17 +98,15 @@ offset_right = 20.0
 grow_horizontal = 2
 grow_vertical = 0
 
-[node name="Battery" type="Label" parent="CanvasLayer/Control"]
-layout_mode = 0
-offset_left = 4.0
-offset_top = 724.0
-offset_right = 101.0
-offset_bottom = 766.0
-text = "Battery"
-
-[node name="ProgressBar" type="ProgressBar" parent="CanvasLayer/Control"]
+[node name="StaminaHUD" type="ProgressBar" parent="CanvasLayer/Control"]
 layout_mode = 0
 offset_left = 1.0
 offset_top = 688.0
 offset_right = 180.0
 offset_bottom = 715.0
+
+[node name="BatteryHUD" type="ProgressBar" parent="CanvasLayer/Control"]
+layout_mode = 0
+offset_top = 718.0
+offset_right = 180.0
+offset_bottom = 745.0

@@ -5,26 +5,27 @@ extends CharacterBody3D
 @export var PLAYER_ACCELERATION = 5.0;
 @export var SENSITIVITY = 1000
 @export var LERP_SPEED = 5
-#@export var MAX_STAMINA = 100;
+@export var MAX_STAMINA = 100;
 @export var MAX_BATTERY_CAPACITY = 100;
 
 # FL
 @onready var currentFlashlightState = FLASHLIGHT_STATES.OFF;
 @onready var flashLight = $FlashLight;
 @onready var batteryChagre = MAX_BATTERY_CAPACITY; 
-@onready var batteryRecoveryCoef = 0.001;
-@onready var batterySpendStep = MAX_BATTERY_CAPACITY * batteryRecoveryCoef;
+@onready var batterySpendCoef = 0.00015;
+@onready var batterySpendStep = MAX_BATTERY_CAPACITY * batterySpendCoef;
 @onready var focusMaxAngle = flashLight.spot_angle;
 @onready var focusMinAngle = 10;
 @onready var currentState;
-
+@onready var reloadTimer = $ReloadTImer;
 #STAMINA
-@onready var MAX_STAMINA = 200;
+#@onready var MAX_STAMINA = 200;
 @onready var currentStaminaState = STAMINA_STATES.FULL;
 @onready var stamina = MAX_STAMINA;
 @onready var staminaSpendStep = 1;
-@onready var staminaRecoveryCoef = 0.01;
+@onready var staminaRecoveryCoef = 0.002;
 @onready var staminaRecoveryStep = MAX_STAMINA * staminaRecoveryCoef
+#@onready var FLASHLIGHT_RELOADING_STATE = false;
 
 const STATES = {
 	DROP = 'drop',
@@ -44,15 +45,19 @@ const STAMINA_STATES = {
 const FLASHLIGHT_STATES = {
 	ON = 'on',
 	OFF = 'off',
-	RELOADING = 'reloading'
-} 
+	RELOADING = 'reloading',
+	JUST_RELOADED = 'just_reloaded',
+	EMPTY = 'empty'
+}
 
 func _ready():
-	$CanvasLayer/Control/ProgressBar.max_value = MAX_STAMINA;
+	$CanvasLayer/Control/StaminaHUD.max_value = MAX_STAMINA;
+	$CanvasLayer/Control/StaminaHUD.max_value = MAX_BATTERY_CAPACITY;
+	
 	pass;
 
 func _physics_process(delta: float) -> void:
-	$CanvasLayer/Control/Battery.text = str(batteryChagre);
+	$CanvasLayer/Control/BatteryHUD.value = batteryChagre;
 	_basicMovement(delta);
 	_flashLightProcess(delta);
 	_handleStaminaState();
@@ -118,7 +123,7 @@ func _updatePlayerState(state) -> void:
 	pass;
 
 func _handleStaminaState():
-	$CanvasLayer/Control/ProgressBar.value = stamina
+	$CanvasLayer/Control/StaminaHUD.value = stamina
 	
 	match currentStaminaState:
 		STAMINA_STATES.SPENDING:
@@ -135,8 +140,7 @@ func _handleStaminaState():
 					stamina = MAX_STAMINA
 					currentStaminaState = STAMINA_STATES.FULL
 			pass
-
-
+			
 func _updateStaminaState(staminaState):
 	if stamina == MAX_STAMINA:
 		currentStaminaState = STAMINA_STATES.FULL
@@ -144,28 +148,18 @@ func _updateStaminaState(staminaState):
 	if stamina == 0:
 		currentStaminaState = STAMINA_STATES.EMPTY
 		pass;
-		
 	currentStaminaState = staminaState;
-	
 	pass;
-
+	
+func _updateFlashLightState(flashlightState):
+	currentFlashlightState = flashlightState;
+	
 func _switchFlashLight():
-	if (batteryChagre > 0):
 		if (currentFlashlightState == FLASHLIGHT_STATES.ON):
 			_updateFlashLightState(FLASHLIGHT_STATES.OFF);
 		else:
 			_updateFlashLightState(FLASHLIGHT_STATES.ON)
-	else:
-		print("NEED TO RELOAD FL")
-
-func _updateFlashLightState(flashlightState):
-	match flashlightState:
-		FLASHLIGHT_STATES.ON:
-			currentFlashlightState = FLASHLIGHT_STATES.ON;
-		FLASHLIGHT_STATES.OFF:
-			currentFlashlightState = FLASHLIGHT_STATES.OFF;
-		
-
+			
 func _handleFlashLightState():
 	match currentFlashlightState:
 		FLASHLIGHT_STATES.ON:
@@ -173,7 +167,11 @@ func _handleFlashLightState():
 		FLASHLIGHT_STATES.OFF:
 			flashLight.light_energy = 0.0;
 		FLASHLIGHT_STATES.RELOADING:
-			pass;
+			flashLight.light_energy = 0.0;
+			batteryChagre = 0;
+		FLASHLIGHT_STATES.JUST_RELOADED:
+			batteryChagre = MAX_BATTERY_CAPACITY;
+			_updateFlashLightState(FLASHLIGHT_STATES.OFF)
 	pass;
 
 func _handleBatteryChange():
@@ -185,32 +183,35 @@ func _handleBatteryChange():
 			batteryChagre -= batterySpendStep;
 
 func _flashLightProcess(_delta: float) -> void:
-	_handleFlashLightState()
-	_handleBatteryChange()
-	
 	# LOOK AT SCREEN
 	var ray = _screenPointToRay();
 	if (ray != Vector3()):
 		flashLight.look_at(ray)
 
-	# ENABLE / DISABLE FL
-	if Input.is_action_just_pressed("flashLight"):
-		_switchFlashLight()
+	_handleFlashLightState()
+	_handleBatteryChange()
+	
+	if reloadTimer.is_stopped():
+		if currentFlashlightState == FLASHLIGHT_STATES.RELOADING:
+			_updateFlashLightState(FLASHLIGHT_STATES.JUST_RELOADED)
+		# ENABLE / DISABLE FL
+		if Input.is_action_just_pressed("flashLight"):
+			_switchFlashLight()
 
-	# FOCUSING FL (configurable)
-	if Input.is_action_just_pressed("focusFL"):
-		if (flashLight.spot_angle > focusMinAngle):
-			flashLight.spot_range += 2
-			flashLight.spot_attenuation -= 0.2
-			flashLight.spot_angle -= 5
-	if Input.is_action_just_pressed("unfocusFL"):
-		if (flashLight.spot_angle < focusMaxAngle):
-			flashLight.spot_range -= 2
-			flashLight.spot_attenuation += 0.2
-			flashLight.spot_angle += 5
-	if Input.is_action_just_pressed("reload"):
-		print("reload")
-		pass;
+		# FOCUSING FL (configurable)
+		if Input.is_action_just_pressed("focusFL"):
+			if (flashLight.spot_angle > focusMinAngle):
+				flashLight.spot_range += 2
+				flashLight.spot_attenuation -= 0.2
+				flashLight.spot_angle -= 5
+		if Input.is_action_just_pressed("unfocusFL"):
+			if (flashLight.spot_angle < focusMaxAngle):
+				flashLight.spot_range -= 2
+				flashLight.spot_attenuation += 0.2
+				flashLight.spot_angle += 5
+		if Input.is_action_just_pressed("reload"):
+			reloadTimer.start()
+			_updateFlashLightState(FLASHLIGHT_STATES.RELOADING)
 	pass;
 
 func _screenPointToRay():
@@ -226,6 +227,9 @@ func _screenPointToRay():
 		return rayArray['position']
 
 	return Vector3();
+
+
+
 
 
 # ROADMAP
