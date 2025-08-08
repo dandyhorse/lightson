@@ -1,0 +1,8 @@
+[gd_scene load_steps=2 format=3 uid="uid://on1awbl8kp1s"]
+
+[ext_resource type="Script" uid="uid://bqw226mld3dux" path="res://scenes/items/flashlight/flashlight.gd" id="1_nnxok"]
+
+[node name="Flashlight" type="SpotLight3D"]
+script = ExtResource("1_nnxok")
+
+[node name="ReloadTimer" type="Timer" parent="."]
