@@ -6,3 +6,4 @@
 script = ExtResource("1_nnxok")
 
 [node name="ReloadTimer" type="Timer" parent="."]
+one_shot = true
