@@ -1,4 +1,4 @@
-extends CharacterBody3D
+extends CharacterBody3D	
 
 @export var SPEED = 5.0;
 @export var JUMP_VELOCITY = 4.5;
@@ -35,7 +35,7 @@ func _ready():
 	pass;
 
 func _physics_process(delta: float) -> void:
-	$CanvasLayer/Control/BatteryHUD.value = flashLight.batteryChagre;
+	#$CanvasLayer/Control/BatteryHUD.value = flashLight.battery_charge;
 	_basicMovement(delta);
 	_handleStaminaState();
 	pass;

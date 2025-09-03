@@ -1,104 +1,99 @@
 extends SpotLight3D
 
-@export var MAX_BATTERY_CAPACITY = 100;
+# Константы и перечисления
+enum FlashlightState { ON, OFF, RELOADING, EMPTY }
+@export var MAX_BATTERY_CAPACITY: float = 100.0
+@export var BATTERY_SPEND_RATE: float = 0.015  # Заряд в секунду
+@export var FOCUS_MIN_ANGLE: float = 10.0
+@export var FOCUS_MAX_ANGLE: float = 60.0
+@export var RELOAD_TIME: float = 2.0
 
-@onready var currentFlashlightState = FLASHLIGHT_STATES.OFF;
-@onready var flashLight = $".";
-@onready var batteryChagre = MAX_BATTERY_CAPACITY; 
-@onready var batterySpendCoef = 0.00015;
-@onready var batterySpendStep = MAX_BATTERY_CAPACITY * batterySpendCoef;
-@onready var focusMaxAngle = flashLight.spot_angle;
-@onready var focusMinAngle = 10;
-@onready var currentState;
-@onready var reloadTimer = $ReloadTimer;
-@onready var batteries = 1;
-
-const FLASHLIGHT_STATES = {
-	ON = 'on',
-	OFF = 'off',
-	RELOADING = 'reloading',
-	EMPTY = 'empty'
-}
+# Ноды и переменные
+@onready var flashlight: SpotLight3D = self
+@onready var reload_timer: Timer = $ReloadTimer
+@onready var battery_charge: float = MAX_BATTERY_CAPACITY
+@onready var batteries: int = 1
+var current_state: FlashlightState = FlashlightState.OFF
 
 func _ready() -> void:
-	pass
+	reload_timer.wait_time = RELOAD_TIME
+	update_flashlight()
 
-func _process(delta: float) -> void:
-	_flashLightProcess(delta);
+func _physics_process(delta: float) -> void:
+	process_flashlight(delta)
 
-func _updateFlashLightState(flashlightState):
-	currentFlashlightState = flashlightState;
-	
-func _switchFlashLight():
-		if (currentFlashlightState == FLASHLIGHT_STATES.ON):
-			_updateFlashLightState(FLASHLIGHT_STATES.OFF);
-		else:
-			_updateFlashLightState(FLASHLIGHT_STATES.ON)
-			
-func _handleFlashLightState():
-	match currentFlashlightState:
-		FLASHLIGHT_STATES.ON:
-			flashLight.light_energy = 10.0;
-		FLASHLIGHT_STATES.OFF:
-			flashLight.light_energy = 0.0;
-		FLASHLIGHT_STATES.RELOADING:
-			flashLight.light_energy = 0.0;
-			batteryChagre = 0;
-	pass;
+func process_flashlight(delta: float) -> void:
+	# Обработка направления фонарика
+	if current_state == FlashlightState.ON:
+		var ray = get_screen_point_to_ray()
+		if ray != Vector3.ZERO:
+			flashlight.look_at(ray)
 
-func _handleBatteryChange():
-	if currentFlashlightState == FLASHLIGHT_STATES.ON:
-		if (batteryChagre - batterySpendStep < 0):
-			batteryChagre = 0;
-			_updateFlashLightState(FLASHLIGHT_STATES.OFF)
-		else:
-			batteryChagre -= batterySpendStep;
-	
-func _flashLightProcess(_delta: float) -> void:
-	# LOOK AT SCREEN
-	var ray = _screenPointToRay();
-	if (ray != Vector3()):
-		flashLight.look_at(ray)
+	# Обработка состояния и батареи
+	update_flashlight()
+	handle_battery(delta)
 
-	_handleFlashLightState()
-	_handleBatteryChange()
-	
-	if reloadTimer.is_stopped():
-		if currentFlashlightState == FLASHLIGHT_STATES.RELOADING:
-			batteryChagre = MAX_BATTERY_CAPACITY;
-			_updateFlashLightState(FLASHLIGHT_STATES.OFF)
-		# ENABLE / DISABLE FL
-		if Input.is_action_just_pressed("flashLight"):
-			_switchFlashLight()
-		# FOCUSING FL (configurable)
-		if Input.is_action_just_pressed("focusFL"):
-			if (flashLight.spot_angle > focusMinAngle):
-				flashLight.spot_range += 2
-				flashLight.spot_attenuation -= 0.2
-				flashLight.spot_angle -= 5
-		if Input.is_action_just_pressed("unfocusFL"):
-			if (flashLight.spot_angle < focusMaxAngle):
-				flashLight.spot_range -= 2
-				flashLight.spot_attenuation += 0.2
-				flashLight.spot_angle += 5
-		if Input.is_action_just_pressed("reload"):
-			if (batteries > 0):
-				batteries -= 1
-				reloadTimer.start()
-				_updateFlashLightState(FLASHLIGHT_STATES.RELOADING)
-			else:
-				print("NOT ENOUGH BATTERIES")
-	pass;
+	# Входы игрока
+	if Input.is_action_just_pressed("flashLight"):
+		toggle_flashlight()
+	if Input.is_action_just_pressed("focusFL"):
+		adjust_focus(-5.0, 2.0, -0.2)
+	if Input.is_action_just_pressed("unfocusFL"):
+		adjust_focus(5.0, -2.0, 0.2)
+	if Input.is_action_just_pressed("reload") and reload_timer.is_stopped():
+		start_reload()
 
-func _screenPointToRay():
-	var spaceState = get_world_3d().direct_space_state;
-	var mousePosition = get_viewport().get_mouse_position()
+func toggle_flashlight() -> void:
+	if current_state == FlashlightState.ON:
+		current_state = FlashlightState.OFF
+	elif current_state == FlashlightState.OFF and battery_charge > 0:
+		current_state = FlashlightState.ON
+	update_flashlight()
+
+func update_flashlight() -> void:
+	match current_state:
+		FlashlightState.ON:
+			flashlight.light_energy = 10.0
+		FlashlightState.OFF, FlashlightState.RELOADING, FlashlightState.EMPTY:
+			flashlight.light_energy = 0.0
+
+func handle_battery(delta: float) -> void:
+	if current_state == FlashlightState.ON:
+		battery_charge = max(0, battery_charge - BATTERY_SPEND_RATE * delta)
+		if battery_charge <= 0:
+			current_state = FlashlightState.EMPTY
+			update_flashlight()
+
+func start_reload() -> void:
+	if batteries > 0:
+		batteries -= 1
+		current_state = FlashlightState.RELOADING
+		reload_timer.start()
+		update_flashlight()
+	else:
+		print("Not enough batteries!")  # TODO: Показать игроку уведомление
+
+func adjust_focus(angle_change: float, range_change: float, attenuation_change: float) -> void:
+	var new_angle = clamp(flashlight.spot_angle + angle_change, FOCUS_MIN_ANGLE, FOCUS_MAX_ANGLE)
+	flashlight.spot_angle = new_angle
+	flashlight.spot_range = clamp(flashlight.spot_range + range_change, 2.0, 20.0)
+	flashlight.spot_attenuation = clamp(flashlight.spot_attenuation + attenuation_change, 0.1, 2.0)
+
+func get_screen_point_to_ray() -> Vector3:
+	var space_state = get_world_3d().direct_space_state
+	var mouse_pos = get_viewport().get_mouse_position()
 	var camera = get_tree().root.get_camera_3d()
-	var rayOrigin = camera.project_ray_origin(mousePosition)
-	var rayEnd = rayOrigin + camera.project_ray_normal(mousePosition) * 2000;
-	var parameters = PhysicsRayQueryParameters3D.create(rayOrigin, rayEnd)
-	parameters.collision_mask = 2;
-	var rayArray = spaceState.intersect_ray(parameters)
-	if rayArray.has('position'):
-		return rayArray['position']
-	return Vector3();
+	if not camera:
+		return Vector3.ZERO
+	var ray_origin = camera.project_ray_origin(mouse_pos)
+	var ray_end = ray_origin + camera.project_ray_normal(mouse_pos) * 2000.0
+	var parameters = PhysicsRayQueryParameters3D.create(ray_origin, ray_end)
+	parameters.collision_mask = 2
+	var ray_result = space_state.intersect_ray(parameters)
+	return ray_result.get("position", Vector3.ZERO)
+
+func _on_ReloadTimer_timeout() -> void:
+	if current_state == FlashlightState.RELOADING:
+		battery_charge = MAX_BATTERY_CAPACITY
+		current_state = FlashlightState.OFF
+		update_flashlight()
