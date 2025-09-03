@@ -20,6 +20,7 @@ func _ready() -> void:
 	update_flashlight()
 
 func _physics_process(delta: float) -> void:
+	print(current_state)
 	process_flashlight(delta)
 
 func process_flashlight(delta: float) -> void:
@@ -28,6 +29,9 @@ func process_flashlight(delta: float) -> void:
 		var ray = get_screen_point_to_ray()
 		if ray != Vector3.ZERO:
 			flashlight.look_at(ray)
+			
+	if reload_timer.is_stopped():
+		_on_ReloadTimer_timeout()
 
 	# Обработка состояния и батареи
 	update_flashlight()

@@ -35,7 +35,7 @@ func _ready():
 	pass;
 
 func _physics_process(delta: float) -> void:
-	#$CanvasLayer/Control/BatteryHUD.value = flashLight.battery_charge;
+	$CanvasLayer/Control/BatteryHUD.value = flashLight.battery_charge;
 	_basicMovement(delta);
 	_handleStaminaState();
 	pass;
