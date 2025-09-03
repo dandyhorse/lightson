@@ -1,39 +1,176 @@
-[gd_scene load_steps=6 format=3 uid="uid://du4vjbhq6x3hq"]
+[gd_scene load_steps=12 format=3 uid="uid://du4vjbhq6x3hq"]
 
-[ext_resource type="Script" uid="uid://cmuvkh12ktq4y" path="res://scenes/world/world.gd" id="1_k0juu"]
+[ext_resource type="Script" uid="uid://ndwibxxg370p" path="res://scenes/world/world_environment.gd" id="1_6m72w"]
 [ext_resource type="Material" uid="uid://bx6qeabdhq2s" path="res://addons/kenney_prototype_tools/materials/dark/material_01.tres" id="2_71j4m"]
 [ext_resource type="Material" uid="uid://cehjio2370tmg" path="res://addons/kenney_prototype_tools/materials/dark/material_03.tres" id="3_qfnet"]
 [ext_resource type="PackedScene" uid="uid://do7mx57l1v3qh" path="res://scenes/player/player.tscn" id="4_i7141"]
 
-[sub_resource type="Environment" id="Environment_tlwt5"]
-background_color = Color(0.00662094, 0.0671427, 0.0841409, 1)
+[sub_resource type="Environment" id="Environment_1fp7r"]
+background_mode = 1
+background_color = Color(0.442911, 0.442911, 0.442911, 1)
+ambient_light_color = Color(0.443137, 0.443137, 0.443137, 1)
+
+[sub_resource type="Animation" id="Animation_t5ptc"]
+resource_name = "SkyColor"
+length = 12.0
+loop_mode = 1
+tracks/0/type = "value"
+tracks/0/imported = false
+tracks/0/enabled = true
+tracks/0/path = NodePath(".:environment:background_color")
+tracks/0/interp = 1
+tracks/0/loop_wrap = true
+tracks/0/keys = {
+"times": PackedFloat32Array(0, 6),
+"transitions": PackedFloat32Array(1, 1),
+"update": 0,
+"values": [Color(0.442911, 0.442911, 0.442911, 1), Color(0.0253638, 0.0253638, 0.0253638, 1)]
+}
+tracks/1/type = "value"
+tracks/1/imported = false
+tracks/1/enabled = true
+tracks/1/path = NodePath(".:environment:ambient_light_color")
+tracks/1/interp = 1
+tracks/1/loop_wrap = true
+tracks/1/keys = {
+"times": PackedFloat32Array(0, 6),
+"transitions": PackedFloat32Array(1, 1),
+"update": 0,
+"values": [Color(0.443137, 0.443137, 0.443137, 1), Color(0.0235294, 0.0235294, 0.0235294, 1)]
+}
+
+[sub_resource type="Animation" id="Animation_1fp7r"]
+length = 0.001
+tracks/0/type = "value"
+tracks/0/imported = false
+tracks/0/enabled = true
+tracks/0/path = NodePath(".:environment:background_color")
+tracks/0/interp = 1
+tracks/0/loop_wrap = true
+tracks/0/keys = {
+"times": PackedFloat32Array(0),
+"transitions": PackedFloat32Array(1),
+"update": 0,
+"values": [Color(0.442911, 0.442911, 0.442911, 1)]
+}
+tracks/1/type = "value"
+tracks/1/imported = false
+tracks/1/enabled = true
+tracks/1/path = NodePath(".:environment:ambient_light_color")
+tracks/1/interp = 1
+tracks/1/loop_wrap = true
+tracks/1/keys = {
+"times": PackedFloat32Array(0),
+"transitions": PackedFloat32Array(1),
+"update": 0,
+"values": [Color(0.443137, 0.443137, 0.443137, 1)]
+}
+
+[sub_resource type="AnimationLibrary" id="AnimationLibrary_bq33v"]
+_data = {
+&"RESET": SubResource("Animation_1fp7r"),
+&"SkyColor": SubResource("Animation_t5ptc")
+}
+
+[sub_resource type="Animation" id="Animation_6m72w"]
+resource_name = "Rotate"
+length = 12.0
+loop_mode = 1
+tracks/0/type = "value"
+tracks/0/imported = false
+tracks/0/enabled = true
+tracks/0/path = NodePath(".:rotation")
+tracks/0/interp = 1
+tracks/0/loop_wrap = true
+tracks/0/keys = {
+"times": PackedFloat32Array(0, 12),
+"transitions": PackedFloat32Array(1, 1),
+"update": 0,
+"values": [Vector3(-1.5708, 0.785398, 0), Vector3(4.71239, 0.785398, 0)]
+}
+tracks/1/type = "value"
+tracks/1/imported = false
+tracks/1/enabled = true
+tracks/1/path = NodePath(".:light_energy")
+tracks/1/interp = 1
+tracks/1/loop_wrap = true
+tracks/1/keys = {
+"times": PackedFloat32Array(0, 3, 9.01, 12),
+"transitions": PackedFloat32Array(1, 1, 1, 1),
+"update": 0,
+"values": [2.0, 0.0, 0.0, 2.0]
+}
+
+[sub_resource type="Animation" id="Animation_v5dby"]
+length = 0.001
+tracks/0/type = "value"
+tracks/0/imported = false
+tracks/0/enabled = true
+tracks/0/path = NodePath(".:rotation")
+tracks/0/interp = 1
+tracks/0/loop_wrap = true
+tracks/0/keys = {
+"times": PackedFloat32Array(0),
+"transitions": PackedFloat32Array(1),
+"update": 0,
+"values": [Vector3(-1.5708, 0, 0)]
+}
+tracks/1/type = "value"
+tracks/1/imported = false
+tracks/1/enabled = true
+tracks/1/path = NodePath(".:light_energy")
+tracks/1/interp = 1
+tracks/1/loop_wrap = true
+tracks/1/keys = {
+"times": PackedFloat32Array(0),
+"transitions": PackedFloat32Array(1),
+"update": 0,
+"values": [2.0]
+}
+
+[sub_resource type="AnimationLibrary" id="AnimationLibrary_t5ptc"]
+_data = {
+&"RESET": SubResource("Animation_v5dby"),
+&"Rotate": SubResource("Animation_6m72w")
+}
 
 [node name="World" type="Node3D"]
-script = ExtResource("1_k0juu")
 
 [node name="WorldEnvironment" type="WorldEnvironment" parent="."]
-environment = SubResource("Environment_tlwt5")
+environment = SubResource("Environment_1fp7r")
+script = ExtResource("1_6m72w")
+
+[node name="WorldEnvAnimationPlayer" type="AnimationPlayer" parent="WorldEnvironment"]
+libraries = {
+&"": SubResource("AnimationLibrary_bq33v")
+}
+
+[node name="SunMoonLight" type="DirectionalLight3D" parent="."]
+transform = Transform3D(1, 0, 0, 0, -4.37114e-08, 1, 0, -1, -4.37114e-08, 0, 20, 0)
+light_energy = 2.0
+shadow_enabled = true
+shadow_normal_bias = 0.5
+
+[node name="LightAnimationPlayer" type="AnimationPlayer" parent="SunMoonLight"]
+libraries = {
+&"": SubResource("AnimationLibrary_t5ptc")
+}
 
 [node name="Ground" type="Node3D" parent="."]
 
 [node name="CSGBox3D" type="CSGBox3D" parent="Ground"]
-transform = Transform3D(1, 0, 0, 0, 1, 0, 0, 0, 1, 0.0405722, -0.376035, -0.0091877)
+transform = Transform3D(1, 0, 0, 0, 1, 0, 0, 0, 1, -0.164706, -0.364479, -0.113382)
 material_override = ExtResource("2_71j4m")
+cast_shadow = 2
 use_collision = true
 collision_layer = 3
-size = Vector3(150, 0.1, 150)
-
-[node name="CSGBox3D2" type="CSGBox3D" parent="Ground"]
-transform = Transform3D(1, 0, 0, 0, 1, 0, 0, 0, 1, -1.41021, 4.76837e-07, -3.88867)
-layers = 3
-material_override = ExtResource("3_qfnet")
-use_collision = true
-collision_layer = 3
+size = Vector3(50, 1, 50)
 
 [node name="CSGBox3D3" type="CSGBox3D" parent="Ground"]
 transform = Transform3D(1, 0, 0, 0, 1, 0, 0, 0, 1, -2.00504, 0.644456, -5.4948)
 layers = 3
 material_override = ExtResource("3_qfnet")
+cast_shadow = 2
 use_collision = true
 collision_layer = 3
 size = Vector3(1, 3.22705, 1)
@@ -42,6 +179,7 @@ size = Vector3(1, 3.22705, 1)
 transform = Transform3D(1, 0, 0, 0, 1, 0, 0, 0, 1, -2.51949, 1.4634, -8.3983)
 layers = 3
 material_override = ExtResource("3_qfnet")
+cast_shadow = 2
 use_collision = true
 collision_layer = 3
 size = Vector3(8.31729, 3.61285, 1)
@@ -50,6 +188,7 @@ size = Vector3(8.31729, 3.61285, 1)
 transform = Transform3D(-4.37114e-08, 0, 1, 0, 1, 0, -1, 0, -4.37114e-08, -6.23892, 0.893685, -3.94303)
 layers = 3
 material_override = ExtResource("3_qfnet")
+cast_shadow = 2
 use_collision = true
 collision_layer = 3
 size = Vector3(7.97969, 5.18695, 1)
@@ -58,6 +197,7 @@ size = Vector3(7.97969, 5.18695, 1)
 transform = Transform3D(-4.37114e-08, 0, -1, 0, 1, 0, 1, 0, -4.37114e-08, 2.14619, 1.23808, -4.92259)
 layers = 3
 material_override = ExtResource("3_qfnet")
+cast_shadow = 2
 use_collision = true
 collision_layer = 3
 size = Vector3(8.31729, 3.41568, 1)

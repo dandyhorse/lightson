@@ -3,6 +3,8 @@
 [ext_resource type="Script" uid="uid://bqw226mld3dux" path="res://scenes/items/flashlight/flashlight.gd" id="1_nnxok"]
 
 [node name="Flashlight" type="SpotLight3D"]
+shadow_enabled = true
+distance_fade_enabled = true
 script = ExtResource("1_nnxok")
 
 [node name="ReloadTimer" type="Timer" parent="."]

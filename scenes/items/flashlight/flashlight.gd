@@ -3,7 +3,7 @@ extends SpotLight3D
 # Константы и перечисления
 enum FlashlightState { ON, OFF, RELOADING, EMPTY }
 @export var MAX_BATTERY_CAPACITY: float = 100.0
-@export var BATTERY_SPEND_RATE: float = 0.015  # Заряд в секунду
+@export var BATTERY_SPEND_RATE: float = 0.95  # Заряд в секунду
 @export var FOCUS_MIN_ANGLE: float = 10.0
 @export var FOCUS_MAX_ANGLE: float = 60.0
 @export var RELOAD_TIME: float = 2.0
@@ -17,10 +17,12 @@ var current_state: FlashlightState = FlashlightState.OFF
 
 func _ready() -> void:
 	reload_timer.wait_time = RELOAD_TIME
+	reload_timer.one_shot = true  # Убедимся, что таймер однократный
+	if not reload_timer.is_connected("timeout", _on_ReloadTimer_timeout):
+		reload_timer.connect("timeout", _on_ReloadTimer_timeout)
 	update_flashlight()
 
 func _physics_process(delta: float) -> void:
-	print(current_state)
 	process_flashlight(delta)
 
 func process_flashlight(delta: float) -> void:
@@ -28,11 +30,8 @@ func process_flashlight(delta: float) -> void:
 	if current_state == FlashlightState.ON:
 		var ray = get_screen_point_to_ray()
 		if ray != Vector3.ZERO:
-			flashlight.look_at(ray)
-			
-	if reload_timer.is_stopped():
-		_on_ReloadTimer_timeout()
-
+			var target_rotation = flashlight.global_transform.looking_at(ray, Vector3.UP).basis
+			flashlight.global_transform.basis = flashlight.global_transform.basis.slerp(target_rotation, 0.6)
 	# Обработка состояния и батареи
 	update_flashlight()
 	handle_battery(delta)
@@ -64,7 +63,7 @@ func update_flashlight() -> void:
 func handle_battery(delta: float) -> void:
 	if current_state == FlashlightState.ON:
 		battery_charge = max(0, battery_charge - BATTERY_SPEND_RATE * delta)
-		if battery_charge <= 0:
+		if battery_charge <= 0 and current_state != FlashlightState.RELOADING:
 			current_state = FlashlightState.EMPTY
 			update_flashlight()
 
@@ -72,6 +71,7 @@ func start_reload() -> void:
 	if batteries > 0:
 		batteries -= 1
 		current_state = FlashlightState.RELOADING
+		battery_charge = 0.0  # Обнуляем заряд батареи при начале перезарядки
 		reload_timer.start()
 		update_flashlight()
 	else:
@@ -98,6 +98,6 @@ func get_screen_point_to_ray() -> Vector3:
 
 func _on_ReloadTimer_timeout() -> void:
 	if current_state == FlashlightState.RELOADING:
-		battery_charge = MAX_BATTERY_CAPACITY
+		battery_charge = MAX_BATTERY_CAPACITY  # Восстанавливаем заряд батареи
 		current_state = FlashlightState.OFF
 		update_flashlight()
